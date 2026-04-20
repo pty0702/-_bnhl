@@ -23,23 +23,28 @@ def calculate_raw_materials(product, target_qty):
     if product not in bom:
         raise ValueError(f"数据库中不存在产品/半成品：'{product}'，或该产品本身即为最底层原材料。")
 
+    # bom_logic.py 局部修改
+
     def resolve(item, current_qty, path):
         # 防死循环检测
         if item in path:
             cycle_path = " -> ".join(path + [item])
-            raise RecursionError(f"检测到BOM死循环/交叉引用，请检查配方数据！\n循环路径: {cycle_path}")
+            raise RecursionError(f"检测到BOM死循环！\n循环路径: {cycle_path}")
 
         if item not in bom:
             # 叶子节点（最底层原材料）
             results[item] = results.get(item, 0.0) + current_qty
             return
 
-        # 记录当前路径
         path.append(item)
-        # 遍历当前父件的子件
-        for child, qty_per_unit in bom[item]:
-            resolve(child, current_qty * qty_per_unit, path)
-        # 回溯出栈
+        for child, qty_per_1000 in bom[item]:
+            # 核心逻辑变更：
+            # 因为 qty_per_1000 的单位是 kg/吨 (即 kg/1000kg)
+            # 所以 1kg 父件消耗的子件 = qty_per_1000 / 1000
+            real_qty_per_unit = qty_per_1000 / 1000.0
+
+            # 递归计算：当前父件需求量(kg) * 每kg父件消耗的子件(kg)
+            resolve(child, current_qty * real_qty_per_unit, path)
         path.pop()
 
     resolve(product, float(target_qty), [])

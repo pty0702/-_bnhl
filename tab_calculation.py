@@ -2,7 +2,7 @@
 import datetime
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QLineEdit, QPushButton, QTableWidget, QTableWidgetItem,
-                             QMessageBox, QHeaderView)
+                             QMessageBox, QHeaderView,QApplication)
 import pandas as pd
 import bom_logic
 
@@ -50,7 +50,33 @@ class TabCalculation(QWidget):
         layout.addWidget(self.table)
         layout.addLayout(export_layout)
         self.setLayout(layout)
+        # 【新增】设置表格为不可编辑（防止双击变成输入状态）
+        from PyQt5.QtWidgets import QAbstractItemView
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
+        # 【新增】绑定双击事件
+        self.table.itemDoubleClicked.connect(self.copy_cell_text)
+
+    # 【新增】复制逻辑方法
+    # 首先确保在文件顶部的 import 中加入了 QCursor
+    from PyQt5.QtGui import QCursor  # <--- 必须加上这个导入
+
+    def copy_cell_text(self, item):
+        """双击单元格复制内容到剪贴板 - 健壮版"""
+        if item:
+            try:
+                # 1. 获取剪贴板对象
+                clipboard = QApplication.clipboard()
+                text_to_copy = item.text()
+                clipboard.setText(text_to_copy)
+
+                # 2. 简单的气泡提示 (改用更稳定的 QCursor)
+                # 之前崩溃可能是因为 QApplication.desktop() 在某些系统上返回了空对象
+                QToolTip.showText(QCursor.pos(), f"已复制: {text_to_copy}", self)
+
+                print(f"成功复制: {text_to_copy}")  # 控制台打印，方便调试
+            except Exception as e:
+                print(f"复制失败: {str(e)}")
     def run_calculation(self):
         product = self.input_product.text().strip()
         qty_str = self.input_target_qty.text().strip()
