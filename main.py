@@ -1,4 +1,11 @@
 # main.py
+import os
+import sys
+import PyQt5
+
+# 动态获取 PyQt5 的插件路径并强行设置到环境变量中
+plugin_path = os.path.join(os.path.dirname(PyQt5.__file__), "Qt5", "plugins", "platforms")
+os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget
 import database
