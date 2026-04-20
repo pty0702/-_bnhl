@@ -75,3 +75,13 @@ def delete_all_by_parent(parent):
     cursor.execute("DELETE FROM recipes WHERE parent_item=?", (parent,))
     conn.commit()
     conn.close()
+# database.py 增加此函数
+def get_unique_parents():
+    """获取所有已录入的产品名称清单（去重）"""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT parent_item FROM recipes")
+    # 将结果转为简单的列表
+    data = [row[0] for row in cursor.fetchall()]
+    conn.close()
+    return data
