@@ -4,7 +4,21 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget
 import database
 from tab_maintenance import TabMaintenance
 from tab_calculation import TabCalculation
+import os
+import sys
+import PyQt5
 
+# 【核心修复代码】强行定位 Qt 插件路径
+# 这段代码会自动寻找你当前环境里 PyQt5 存放插件的真实位置
+dirname = os.path.dirname(PyQt5.__file__)
+plugin_path = os.path.join(dirname, 'Qt5', 'plugins', 'platforms')
+
+if os.path.exists(plugin_path):
+    os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
+else:
+    # 兼容某些版本的路径差异
+    plugin_path = os.path.join(dirname, 'Qt', 'plugins', 'platforms')
+    os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 # 定义全局现代风格 CSS (QSS)
 MODERN_STYLE = """
     /* 全局字体和颜色 */
